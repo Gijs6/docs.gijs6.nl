@@ -124,7 +124,16 @@ def serve(port=8000, dev=False):
     class DevHTTPServer(BuildHTTPServer):
         directory = BUILD_DEV_DIR
 
-    server = HTTPServer(("0.0.0.0", port), DevHTTPServer)
+    for candidate in range(port, port + 100):
+        try:
+            server = HTTPServer(("0.0.0.0", candidate), DevHTTPServer)
+            port = candidate
+            break
+        except OSError as exc:
+            if exc.errno != 98:
+                raise
+    else:
+        raise SystemExit(f"composer: no free port in {port}-{port + 99}")
     threading.Thread(target=server.serve_forever, daemon=True).start()
 
     print(
